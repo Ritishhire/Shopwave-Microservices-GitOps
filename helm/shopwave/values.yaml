@@ -52,7 +52,7 @@ mongo:
 backend:
   image:
     repository: ritishhire/ecommerce-backend
-    tag: e28504480b684befc42b42994cf1c2612f1bbfbc
+    tag: v4
     pullPolicy: Always # Pull from Docker Hub (ArgoCD / cloud deployment)
   replicas: 2
   port: 5000
@@ -94,7 +94,7 @@ backend:
 frontend:
   image:
     repository: ritishhire/ecommerce-frontend
-    tag: e28504480b684befc42b42994cf1c2612f1bbfbc
+    tag: v4
     pullPolicy: Always # Pull from Docker Hub (ArgoCD / cloud deployment)
   replicas: 2
   port: 80
