@@ -56,7 +56,7 @@ backend:
     repository: ritishhire/ecommerce-backend
     tag: v1
     pullPolicy: Always          # Pull from Docker Hub (ArgoCD / cloud deployment)
-  replicas: 2
+  replicas: 1
   port: 5000
   nodeEnv: production
   jwtExpire: 7d
@@ -99,7 +99,7 @@ frontend:
     repository: ritishhire/ecommerce-frontend
     tag: v1
     pullPolicy: Always          # Pull from Docker Hub (ArgoCD / cloud deployment)
-  replicas: 2
+  replicas: 1
   port: 80
   nodePort: 30080               # Exposed on host via kind extraPortMapping
   resources:
