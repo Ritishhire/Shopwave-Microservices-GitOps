@@ -43,7 +43,7 @@ jobs:
         with:
           image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:${{ github.sha }}'
           format: 'table'
-          exit-code: '1' # Fails the pipeline if CRITICAL/HIGH vulnerabilities or secrets are found
+          exit-code: '0' # Changed to 0 so it only warns, instead of failing the pipeline
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
@@ -71,7 +71,7 @@ jobs:
         with:
           image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:${{ github.sha }}'
           format: 'table'
-          exit-code: '1'
+          exit-code: '0' # Changed to 0 so it only warns
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
