@@ -53,7 +53,7 @@ backend:
     repository: ecommerce-backend
     tag: latest
     pullPolicy: IfNotPresent    # Loaded via kind load — do not re-pull
-  replicas: 2
+  replicas: 1
   port: 5000
   nodeEnv: production
   jwtExpire: 7d
