@@ -13,7 +13,6 @@ global:
   # Set to true only for pure `helm install` (without ArgoCD).
   # ArgoCD manages the namespace via CreateNamespace=true syncOption.
   createNamespace: false
-
 # ---------------------------------------------------------------------------
 # MongoDB
 # ---------------------------------------------------------------------------
@@ -21,10 +20,10 @@ mongo:
   image:
     repository: mongo
     tag: "7"
-    pullPolicy: Always          # Public image — always pull from Docker Hub
-  replicas: 1                   # StatefulSet — do NOT scale horizontally
+    pullPolicy: Always # Public image — always pull from Docker Hub
+  replicas: 1 # StatefulSet — do NOT scale horizontally
   database: shopwave
-  storage: 1Gi                  # PVC size
+  storage: 1Gi # PVC size
   resources:
     requests:
       cpu: 100m
@@ -47,15 +46,14 @@ mongo:
       periodSeconds: 20
       timeoutSeconds: 3
       failureThreshold: 3
-
 # ---------------------------------------------------------------------------
 # Backend (Node.js API)
 # ---------------------------------------------------------------------------
 backend:
   image:
     repository: ritishhire/ecommerce-backend
-    tag: v1
-    pullPolicy: Always          # Pull from Docker Hub (ArgoCD / cloud deployment)
+    tag: e28504480b684befc42b42994cf1c2612f1bbfbc
+    pullPolicy: Always # Pull from Docker Hub (ArgoCD / cloud deployment)
   replicas: 2
   port: 5000
   nodeEnv: production
@@ -90,18 +88,17 @@ backend:
     maxReplicas: 8
     cpuUtilization: 70
     memoryUtilization: 80
-
 # ---------------------------------------------------------------------------
 # Frontend (React + nginx)
 # ---------------------------------------------------------------------------
 frontend:
   image:
     repository: ritishhire/ecommerce-frontend
-    tag: v1
-    pullPolicy: Always          # Pull from Docker Hub (ArgoCD / cloud deployment)
+    tag: e28504480b684befc42b42994cf1c2612f1bbfbc
+    pullPolicy: Always # Pull from Docker Hub (ArgoCD / cloud deployment)
   replicas: 2
   port: 80
-  nodePort: 30080               # Exposed on host via kind extraPortMapping
+  nodePort: 30080 # Exposed on host via kind extraPortMapping
   resources:
     requests:
       cpu: 50m
@@ -132,7 +129,6 @@ frontend:
     maxReplicas: 6
     cpuUtilization: 70
     memoryUtilization: 80
-
 # ---------------------------------------------------------------------------
 # Ingress
 # ---------------------------------------------------------------------------
@@ -144,8 +140,7 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
-  host: ""                      # Leave empty for kind (uses localhost)
-
+  host: "" # Leave empty for kind (uses localhost)
 # ---------------------------------------------------------------------------
 # Secrets  ⚠ Override this before a real production deployment!
 # ---------------------------------------------------------------------------
