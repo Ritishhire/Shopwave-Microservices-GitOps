@@ -9,18 +9,6 @@ metadata:
     app.kubernetes.io/name: shopwave
     app.kubernetes.io/managed-by: argocd
   annotations:
-    # ── IMAGE UPDATER ANNOTATIONS ─────────────────────────────
-    # Tells ArgoCD to monitor these images on Docker Hub
-    argocd-image-updater.argoproj.io/image-list: |
-      frontend=ritishhire/ecommerce-frontend:v1,
-      backend=ritishhire/ecommerce-backend:v1
-    # Update strategy (semver means semantic versioning like 1.0.0)
-    argocd-image-updater.argoproj.io/frontend.update-strategy: semver
-    argocd-image-updater.argoproj.io/backend.update-strategy: semver
-    # Method to save updates (write them back to GitHub)
-    argocd-image-updater.argoproj.io/write-back-method: git
-    argocd-image-updater.argoproj.io/git-branch: main
-
     # ── NOTIFICATIONS ANNOTATIONS ─────────────────────────────
     # Triggers an email to your address when events happen
     notifications.argoproj.io/subscribe.on-sync-succeeded.email: ritishhire179@gmail.com

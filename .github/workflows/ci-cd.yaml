@@ -1,0 +1,116 @@
+name: CI/CD Pipeline to GitOps
+
+on:
+  push:
+    branches:
+      - main
+    # Only trigger if code in these folders changes (saves Action minutes!)
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - '.github/workflows/**'
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # JOB 1: BUILD, TRIVY SCAN, AND PUSH TO DOCKER HUB
+  # ─────────────────────────────────────────────────────────────────────────
+  build-scan-push:
+    name: Build, Scan & Push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ─── FRONTEND ─────────────────────────────────────────────────────────
+      - name: Build Frontend Image (Local)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          load: true # Load into local docker daemon so Trivy can scan it
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:${{ github.sha }}
+
+      - name: Trivy Scan Frontend (Vulnerabilities & Secrets)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1' # Fails the pipeline if CRITICAL/HIGH vulnerabilities or secrets are found
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          scanners: 'vuln,secret'
+
+      - name: Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:latest
+
+      # ─── BACKEND ──────────────────────────────────────────────────────────
+      - name: Build Backend Image (Local)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          load: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:${{ github.sha }}
+
+      - name: Trivy Scan Backend (Vulnerabilities & Secrets)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          scanners: 'vuln,secret'
+
+      - name: Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:latest
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # JOB 2: UPDATE GITOPS REPO (HELM VALUES) & COMMIT
+  # ─────────────────────────────────────────────────────────────────────────
+  update-gitops:
+    name: Update GitOps Repository
+    needs: build-scan-push # Only runs if build, scan, and push were 100% successful
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Helm Values with new Image Tags
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          # Use yq to safely update the tag values in helm/shopwave/values.yaml
+          yq e -i '.backend.image.tag = env(SHA) | .frontend.image.tag = env(SHA)' helm/shopwave/values.yaml
+
+      - name: Commit and Push Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add helm/shopwave/values.yaml
+          # [skip ci] prevents the commit from triggering another action loop!
+          git commit -m "ci: Update image tags to ${{ github.sha }} [skip ci]"
+          git push origin main
