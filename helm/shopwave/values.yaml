@@ -53,9 +53,9 @@ mongo:
 # ---------------------------------------------------------------------------
 backend:
   image:
-    repository: ecommerce-backend
-    tag: latest
-    pullPolicy: IfNotPresent    # Loaded via kind load — do not re-pull
+    repository: ritishhire/ecommerce-backend
+    tag: v1
+    pullPolicy: Always          # Pull from Docker Hub (ArgoCD / cloud deployment)
   replicas: 2
   port: 5000
   nodeEnv: production
