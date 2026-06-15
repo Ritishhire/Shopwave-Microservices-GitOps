@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="footer-top container">
         <div className="footer-brand">
           <div className="footer-logo">🛍️ Shop<span>Wave</span></div>
-          <p>India's premium online shopping destination. Quality products, great prices, fast delivery.</p>
+          <p>India's premium online shopping destination. Quality products, great prices, fast delivery.!!</p>
           <div className="footer-socials">
             <a href="#" aria-label="Facebook"><Facebook size={18} /></a>
             <a href="#" aria-label="Twitter"><Twitter size={18} /></a>
