@@ -1,5 +1,10 @@
 name: CI/CD Pipeline to GitOps
 
+# ─── ADDED PERMISSIONS ──────────────────────────────────────────
+# This gives GitHub Actions the right to push the new commit
+permissions:
+  contents: write
+
 on:
   push:
     branches:
