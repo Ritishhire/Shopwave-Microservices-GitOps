@@ -1,9 +1,5 @@
 {{- if .Values.ingress.enabled }}
 # ── NGINX Ingress ─────────────────────────────────────────────────────────────
-# Prerequisites (run once after cluster creation):
-#   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-#   kubectl wait --namespace ingress-nginx --for=condition=ready pod \
-#     --selector=app.kubernetes.io/component=controller --timeout=120s
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -17,9 +13,9 @@ metadata:
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
-    - {{- if .Values.ingress.host }}host: {{ .Values.ingress.host }}{{- end }}
-      http:
+    - http:
         paths:
+          # API requests go directly to the Node.js backend.
           - path: /api
             pathType: Prefix
             backend:
@@ -27,6 +23,7 @@ spec:
                 name: backend
                 port:
                   number: {{ .Values.backend.port }}
+          # All other traffic goes to the React SPA (nginx).
           - path: /
             pathType: Prefix
             backend:

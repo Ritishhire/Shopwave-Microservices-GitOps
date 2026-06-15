@@ -1,6 +1,14 @@
+{{- /*
+  Namespace is only rendered when ArgoCD is NOT managing it.
+  When ArgoCD's CreateNamespace=true is used, skip this resource
+  to avoid a conflict (ArgoCD owns the namespace, not Helm).
+  Set values.global.createNamespace=true only for pure Helm installs.
+*/ -}}
+{{- if .Values.global.createNamespace }}
 apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ include "shopwave.namespace" . }}
   labels:
     {{- include "shopwave.labels" . | nindent 4 }}
+{{- end }}

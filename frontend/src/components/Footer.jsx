@@ -25,6 +25,7 @@ export default function Footer() {
           <Link to="/products?category=Home & Living">Home & Living</Link>
           <Link to="/products?category=Sports">Sports</Link>
           <Link to="/products?category=Books">Books</Link>
+          <Link to="/products?category=Books">Ritish</Link>
         </div>
 
         <div className="footer-links">
