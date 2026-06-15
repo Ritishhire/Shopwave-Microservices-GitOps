@@ -86,11 +86,7 @@ export function Login() {
             </button>
           </form>
 
-          <div className="demo-creds">
-            <p>🔑 Demo credentials:</p>
-            <div><strong>Admin:</strong> admin@shopwave.com / admin123</div>
-            <div><strong>User:</strong> ritish@example.com / test123</div>
-          </div>
+
         </div>
       </div>
     </div>

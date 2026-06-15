@@ -1,0 +1,47 @@
+ShopWave has been deployed successfully! 🚀
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Release:    {{ .Release.Name }}
+  Namespace:  {{ include "shopwave.namespace" . }}
+  Chart:      {{ .Chart.Name }}-{{ .Chart.Version }}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 Components Deployed:
+  • MongoDB   (StatefulSet)  — 1 replica  + 1Gi PVC
+  • Backend   (Deployment)   — {{ .Values.backend.replicas }} replicas
+  • Frontend  (Deployment)   — {{ .Values.frontend.replicas }} replicas
+{{- if .Values.backend.hpa.enabled }}
+  • Backend HPA              — {{ .Values.backend.hpa.minReplicas }}-{{ .Values.backend.hpa.maxReplicas }} replicas
+{{- end }}
+{{- if .Values.frontend.hpa.enabled }}
+  • Frontend HPA             — {{ .Values.frontend.hpa.minReplicas }}-{{ .Values.frontend.hpa.maxReplicas }} replicas
+{{- end }}
+{{- if .Values.ingress.enabled }}
+  • Ingress (nginx)
+{{- end }}
+
+🌐 Access:
+{{- if .Values.ingress.enabled }}
+  Via Ingress:  http://localhost/              (requires nginx ingress controller)
+{{- end }}
+  Via NodePort: http://localhost:{{ .Values.frontend.nodePort }}/
+
+📋 Useful Commands:
+  # Check pod status
+  kubectl get pods -n {{ include "shopwave.namespace" . }}
+
+  # Stream pod logs
+  kubectl logs -n {{ include "shopwave.namespace" . }} deployment/backend -f
+  kubectl logs -n {{ include "shopwave.namespace" . }} statefulset/mongo -f
+
+  # Check HPA
+  kubectl get hpa -n {{ include "shopwave.namespace" . }}
+
+  # Upgrade the release
+  helm upgrade {{ .Release.Name }} ./helm/shopwave
+
+  # Uninstall everything
+  helm uninstall {{ .Release.Name }}
+
+⚠️  Remember to install the nginx ingress controller before using Ingress:
+   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml

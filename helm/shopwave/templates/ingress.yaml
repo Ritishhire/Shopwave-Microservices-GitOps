@@ -1,0 +1,37 @@
+{{- if .Values.ingress.enabled }}
+# ── NGINX Ingress ─────────────────────────────────────────────────────────────
+# Prerequisites (run once after cluster creation):
+#   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+#   kubectl wait --namespace ingress-nginx --for=condition=ready pod \
+#     --selector=app.kubernetes.io/component=controller --timeout=120s
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shopwave-ingress
+  namespace: {{ include "shopwave.namespace" . }}
+  labels:
+    {{- include "shopwave.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ingress
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - {{- if .Values.ingress.host }}host: {{ .Values.ingress.host }}{{- end }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: {{ .Values.backend.port }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: {{ .Values.frontend.port }}
+{{- end }}

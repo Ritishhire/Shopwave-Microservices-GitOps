@@ -10,7 +10,14 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'],
+  origin: [
+    'http://localhost:3000',     // docker-compose frontend
+    'http://localhost:5173',     // vite dev server
+    'http://localhost:30080',    // k8s NodePort (kind cluster)
+    'http://127.0.0.1:30080',   // k8s NodePort alternate
+    'http://localhost',          // k8s Ingress on port 80
+    'http://127.0.0.1',         // k8s Ingress alternate
+  ],
   credentials: true
 }));
 app.use(express.json());

@@ -1,0 +1,150 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# ShopWave Helm Values
+# Override any value with:  helm install shopwave ./helm/shopwave -f my-values.yaml
+# Or inline:                --set backend.image.tag=v2
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ---------------------------------------------------------------------------
+# Global
+# ---------------------------------------------------------------------------
+global:
+  # Namespace where all resources are deployed.
+  namespace: shopwave
+
+# ---------------------------------------------------------------------------
+# MongoDB
+# ---------------------------------------------------------------------------
+mongo:
+  image:
+    repository: mongo
+    tag: "7"
+    pullPolicy: Always          # Public image — always pull from Docker Hub
+  replicas: 1                   # StatefulSet — do NOT scale horizontally
+  database: shopwave
+  storage: 1Gi                  # PVC size
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  probes:
+    startup:
+      initialDelaySeconds: 15
+      failureThreshold: 30
+      periodSeconds: 5
+      timeoutSeconds: 3
+    readiness:
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+      successThreshold: 2
+    liveness:
+      periodSeconds: 20
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# ---------------------------------------------------------------------------
+# Backend (Node.js API)
+# ---------------------------------------------------------------------------
+backend:
+  image:
+    repository: ecommerce-backend
+    tag: latest
+    pullPolicy: IfNotPresent    # Loaded via kind load — do not re-pull
+  replicas: 2
+  port: 5000
+  nodeEnv: production
+  jwtExpire: 7d
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  probes:
+    startup:
+      initialDelaySeconds: 10
+      failureThreshold: 30
+      periodSeconds: 5
+      timeoutSeconds: 3
+    readiness:
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+      successThreshold: 2
+    liveness:
+      initialDelaySeconds: 20
+      periodSeconds: 20
+      timeoutSeconds: 3
+      failureThreshold: 3
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    cpuUtilization: 70
+    memoryUtilization: 80
+
+# ---------------------------------------------------------------------------
+# Frontend (React + nginx)
+# ---------------------------------------------------------------------------
+frontend:
+  image:
+    repository: ecommerce-frontend
+    tag: latest
+    pullPolicy: IfNotPresent    # Loaded via kind load — do not re-pull
+  replicas: 2
+  port: 80
+  nodePort: 30080               # Exposed on host via kind extraPortMapping
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  probes:
+    startup:
+      initialDelaySeconds: 5
+      failureThreshold: 18
+      periodSeconds: 5
+      timeoutSeconds: 3
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+      successThreshold: 2
+    liveness:
+      initialDelaySeconds: 15
+      periodSeconds: 20
+      timeoutSeconds: 3
+      failureThreshold: 3
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    cpuUtilization: 70
+    memoryUtilization: 80
+
+# ---------------------------------------------------------------------------
+# Ingress
+# ---------------------------------------------------------------------------
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+  host: ""                      # Leave empty for kind (uses localhost)
+
+# ---------------------------------------------------------------------------
+# Secrets  ⚠ Override this before a real production deployment!
+# ---------------------------------------------------------------------------
+secrets:
+  jwtSecret: shopwave_super_secret_jwt_key_2024
