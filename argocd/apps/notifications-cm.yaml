@@ -6,9 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: argocd
 data:
-  # ─────────────────────────────────────────────
-  # SMTP Service Configuration (Gmail)
-  # ─────────────────────────────────────────────
+  # ── SMTP Email Server ────────────────────────
   service.email: |
     host: smtp.gmail.com
     port: 587
@@ -16,54 +14,49 @@ data:
     username: $email-username
     password: $email-password
 
-  # ─────────────────────────────────────────────
-  # Notification Templates
-  # ─────────────────────────────────────────────
+  # ── ArgoCD server URL (for Details link) ─────
+  context: |
+    argocdUrl: http://3.7.252.13:8080
+
+  # ── Email Templates ───────────────────────────
   template.app-sync-succeeded: |
     email:
-      subject: "[ShopWave] Deployment Successful - {{.app.metadata.name}}"
+      subject: "✅ ShopWave Deployment SUCCESS - {{.app.metadata.name}}"
     message: |
-      Hello,
-
-      Application "{{.app.metadata.name}}" deployed successfully.
-
-      Project   : {{.app.spec.project}}
-      Namespace : {{.app.spec.destination.namespace}}
-      Revision  : {{.app.status.sync.revision}}
-      Status    : {{.app.status.sync.status}}
+      ✅ Application: {{.app.metadata.name}}
+      📦 Namespace: {{.app.spec.destination.namespace}}
+      🔄 Sync status: {{.app.status.sync.status}}
+      📌 Revision: {{.app.status.sync.revision}}
+      ❤️ Health status: {{.app.status.health.status}}
+      ⚙️ Last operation: {{.app.status.operationState.phase}}
+      Finished at: {{.app.status.operationState.finishedAt}}
+      🔗 Details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}
 
   template.app-sync-failed: |
     email:
-      subject: "[ShopWave] Deployment FAILED - {{.app.metadata.name}}"
+      subject: "❌ ShopWave Deployment FAILED - {{.app.metadata.name}}"
     message: |
-      Hello,
-
-      Application "{{.app.metadata.name}}" failed to sync.
-
-      Project   : {{.app.spec.project}}
-      Namespace : {{.app.spec.destination.namespace}}
-      Phase     : {{.app.status.operationState.phase}}
-      Message   : {{.app.status.operationState.message}}
-
-      Please check the ArgoCD UI for more details.
+      ❌ Application: {{.app.metadata.name}}
+      📦 Namespace: {{.app.spec.destination.namespace}}
+      🔄 Sync status: {{.app.status.sync.status}}
+      📌 Revision: {{.app.status.sync.revision}}
+      💔 Health status: {{.app.status.health.status}}
+      ⚙️ Last operation: {{.app.status.operationState.phase}}
+      ⚠️ Message: {{.app.status.operationState.message}}
+      🔗 Details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}
 
   template.app-health-degraded: |
     email:
-      subject: "[ShopWave] Health DEGRADED - {{.app.metadata.name}}"
+      subject: "⚠️ ShopWave Health DEGRADED - {{.app.metadata.name}}"
     message: |
-      Hello,
+      ⚠️ Application: {{.app.metadata.name}}
+      📦 Namespace: {{.app.spec.destination.namespace}}
+      🔄 Sync status: {{.app.status.sync.status}}
+      📌 Revision: {{.app.status.sync.revision}}
+      💔 Health status: {{.app.status.health.status}}
+      🔗 Details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}
 
-      Application "{{.app.metadata.name}}" health is Degraded.
-
-      Project   : {{.app.spec.project}}
-      Namespace : {{.app.spec.destination.namespace}}
-      Health    : {{.app.status.health.status}}
-
-      One or more pods might be crashing.
-
-  # ─────────────────────────────────────────────
-  # Triggers (When to send notifications)
-  # ─────────────────────────────────────────────
+  # ── Triggers ──────────────────────────────────
   trigger.on-sync-succeeded: |
     - when: app.status.operationState.phase in ['Succeeded']
       send: [app-sync-succeeded]
@@ -76,12 +69,10 @@ data:
     - when: app.status.health.status == 'Degraded'
       send: [app-health-degraded]
 
-  # ─────────────────────────────────────────────
-  # Subscriptions (Who receives notifications, for all apps)
-  # ─────────────────────────────────────────────
+  # ── Subscriptions (who gets email) ───────────
   subscriptions: |
     - recipients:
-        - 23amtics301@gmail.com
+        - ritishhire179@gmail.com
       triggers:
         - on-sync-succeeded
         - on-sync-failed
