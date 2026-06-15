@@ -60,7 +60,7 @@ export default function Navbar() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button type="submit" className="search-btn">Search</button>
+          <button type="submit" className="search-btn">Searchhhhhhhhhhhhhhhhhhhhhhhhhhhh</button>
         </form>
 
         {/* Right actions */}
