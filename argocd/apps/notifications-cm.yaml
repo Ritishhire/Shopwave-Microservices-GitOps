@@ -3,8 +3,12 @@ kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: argocd
 data:
-  # ── 1. SMTP EMAIL SERVER CONFIGURATION ───────────────────────
+  # ─────────────────────────────────────────────
+  # SMTP Service Configuration (Gmail)
+  # ─────────────────────────────────────────────
   service.email: |
     host: smtp.gmail.com
     port: 587
@@ -12,29 +16,54 @@ data:
     username: $email-username
     password: $email-password
 
-  # ── 2. EMAIL TEMPLATES ──────────────────────────────────────
+  # ─────────────────────────────────────────────
+  # Notification Templates
+  # ─────────────────────────────────────────────
   template.app-sync-succeeded: |
     email:
-      subject: "✅ ShopWave Deployment SUCCESS"
+      subject: "[ShopWave] Deployment Successful - {{.app.metadata.name}}"
     message: |
-      Application {{.app.metadata.name}} deployed successfully!
-      Revision: {{.app.status.sync.revision}}
+      Hello,
+
+      Application "{{.app.metadata.name}}" deployed successfully.
+
+      Project   : {{.app.spec.project}}
+      Namespace : {{.app.spec.destination.namespace}}
+      Revision  : {{.app.status.sync.revision}}
+      Status    : {{.app.status.sync.status}}
 
   template.app-sync-failed: |
     email:
-      subject: "❌ ShopWave Deployment FAILED"
+      subject: "[ShopWave] Deployment FAILED - {{.app.metadata.name}}"
     message: |
-      Application {{.app.metadata.name}} failed to sync. 
-      Please check ArgoCD UI.
+      Hello,
+
+      Application "{{.app.metadata.name}}" failed to sync.
+
+      Project   : {{.app.spec.project}}
+      Namespace : {{.app.spec.destination.namespace}}
+      Phase     : {{.app.status.operationState.phase}}
+      Message   : {{.app.status.operationState.message}}
+
+      Please check the ArgoCD UI for more details.
 
   template.app-health-degraded: |
     email:
-      subject: "⚠️ ShopWave Health DEGRADED"
+      subject: "[ShopWave] Health DEGRADED - {{.app.metadata.name}}"
     message: |
-      Application {{.app.metadata.name}} health is Degraded. 
-      Pods might be crashing.
+      Hello,
 
-  # ── 3. TRIGGERS (When to send emails) ───────────────────────
+      Application "{{.app.metadata.name}}" health is Degraded.
+
+      Project   : {{.app.spec.project}}
+      Namespace : {{.app.spec.destination.namespace}}
+      Health    : {{.app.status.health.status}}
+
+      One or more pods might be crashing.
+
+  # ─────────────────────────────────────────────
+  # Triggers (When to send notifications)
+  # ─────────────────────────────────────────────
   trigger.on-sync-succeeded: |
     - when: app.status.operationState.phase in ['Succeeded']
       send: [app-sync-succeeded]
@@ -46,3 +75,14 @@ data:
   trigger.on-health-degraded: |
     - when: app.status.health.status == 'Degraded'
       send: [app-health-degraded]
+
+  # ─────────────────────────────────────────────
+  # Subscriptions (Who receives notifications, for all apps)
+  # ─────────────────────────────────────────────
+  subscriptions: |
+    - recipients:
+        - 23amtics301@gmail.com
+      triggers:
+        - on-sync-succeeded
+        - on-sync-failed
+        - on-health-degraded
