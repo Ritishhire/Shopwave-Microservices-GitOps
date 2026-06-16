@@ -6,3 +6,6 @@ dist/
 build/
 npm-debug.log*
 .kubeconfig-*
+
+# Ignore ArgoCD secret to prevent leaking password
+argocd-notifications-secret.yaml
