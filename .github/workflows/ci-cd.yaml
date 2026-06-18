@@ -1,7 +1,5 @@
 name: CI/CD Pipeline to GitOps
 
-# ─── ADDED PERMISSIONS ──────────────────────────────────────────
-# This gives GitHub Actions the right to push the new commit
 permissions:
   contents: write
 
@@ -17,10 +15,31 @@ on:
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────
-  # JOB 1: BUILD, TRIVY SCAN, AND PUSH TO DOCKER HUB
+  # JOB 1: CODEBASE SECURITY SCAN (Trivy Filesystem Scan)
   # ─────────────────────────────────────────────────────────────────────────
-  build-scan-push:
-    name: Build, Scan & Push
+  codebase-security-scan:
+    name: Codebase Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Vulnerability Scanner (FS Mode)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'table'
+          exit-code: '0' # Logs warnings only (change to 1 to block pipeline on high severity issues)
+          severity: 'CRITICAL,HIGH'
+          scanners: 'vuln,secret,config'
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # JOB 2: FRONTEND CI PIPELINE (Runs in parallel with Backend)
+  # ─────────────────────────────────────────────────────────────────────────
+  frontend-pipeline:
+    name: Frontend CI Pipeline
+    needs: codebase-security-scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -35,7 +54,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # ─── FRONTEND ─────────────────────────────────────────────────────────
       - name: Build Frontend Image (Local)
         uses: docker/build-push-action@v5
         with:
@@ -43,18 +61,18 @@ jobs:
           load: true # Load into local docker daemon so Trivy can scan it
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:1.0.${{ github.run_number }}
 
-      - name: Trivy Scan Frontend (Vulnerabilities & Secrets)
+      - name: Trivy Scan Frontend Container Image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:1.0.${{ github.run_number }}'
           format: 'table'
-          exit-code: '0' # Changed to 0 so it only warns, instead of failing the pipeline
+          exit-code: '0'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
           scanners: 'vuln,secret'
 
-      - name: Push Frontend Image
+      - name: Push Frontend Image to Docker Hub
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
@@ -63,7 +81,26 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:1.0.${{ github.run_number }}
             ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:latest
 
-      # ─── BACKEND ──────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────────────────────────────────
+  # JOB 3: BACKEND CI PIPELINE (Runs in parallel with Frontend)
+  # ─────────────────────────────────────────────────────────────────────────
+  backend-pipeline:
+    name: Backend CI Pipeline
+    needs: codebase-security-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build Backend Image (Local)
         uses: docker/build-push-action@v5
         with:
@@ -71,18 +108,18 @@ jobs:
           load: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:1.0.${{ github.run_number }}
 
-      - name: Trivy Scan Backend (Vulnerabilities & Secrets)
+      - name: Trivy Scan Backend Container Image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:1.0.${{ github.run_number }}'
           format: 'table'
-          exit-code: '0' # Changed to 0 so it only warns
+          exit-code: '0'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
           scanners: 'vuln,secret'
 
-      - name: Push Backend Image
+      - name: Push Backend Image to Docker Hub
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -90,5 +127,3 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:1.0.${{ github.run_number }}
             ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:latest
-
-
