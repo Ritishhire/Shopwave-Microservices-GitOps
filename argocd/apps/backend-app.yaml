@@ -1,27 +1,36 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: backend
+  name: backend-app
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
-    argocd-image-updater.argoproj.io/image-list: backend=295435084247.dkr.ecr.ap-south-1.amazonaws.com/shopwave-backend
+    # ─── ARGO CD IMAGE UPDATER CONFIGURATION ──────────────────────
+    # Enable image updater tracking for backend container images
+    argocd-image-updater.argoproj.io/image-list: backend=docker.io/ritishhire/ecommerce-backend
     argocd-image-updater.argoproj.io/backend.update-strategy: latest
-    argocd-image-updater.argoproj.io/write-back-method: argocd
-    notifications.argoproj.io/subscribe.on-deployed.github: ""
-    notifications.argoproj.io/subscribe.on-health-degraded.github: ""
+    # Write back updates by committing directly to the git repository
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-branch: main
+    # Target Kustomize so it updates the image block in kustomization.yaml
+    argocd-image-updater.argoproj.io/write-back-target: kustomization
+
+    # ─── ARGO CD NOTIFICATIONS CONFIGURATION ──────────────────────
+    # Send email alerts to ritishhire179@gmail.com
+    notifications.argoproj.io/subscribe.on-sync-succeeded.email: ritishhire179@gmail.com
+    notifications.argoproj.io/subscribe.on-sync-failed.email: ritishhire179@gmail.com
+    notifications.argoproj.io/subscribe.on-health-degraded.email: ritishhire179@gmail.com
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: https://github.com/Ritishhire/Shopwave-Microservices-GitOps.git
+    repoURL: 'https://github.com/Ritishhire/Shopwave-Microservices-GitOps.git'
     targetRevision: main
-    path: helm/backend
+    path: k8s/backend
   destination:
-    server: https://kubernetes.default.svc
-    namespace: argocd
+    server: 'https://kubernetes.default.svc'
+    namespace: default
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true

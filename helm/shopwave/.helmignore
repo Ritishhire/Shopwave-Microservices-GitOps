@@ -1,5 +1,0 @@
-# Helm ignore file (same syntax as .gitignore)
-.git/
-.gitignore
-*.md
-.DS_Store

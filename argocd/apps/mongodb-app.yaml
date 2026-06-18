@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: shopwave-root-app
+  name: mongodb-app
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,9 +10,7 @@ spec:
   source:
     repoURL: 'https://github.com/Ritishhire/Shopwave-Microservices-GitOps.git'
     targetRevision: main
-    path: argocd/apps
-    directory:
-      recurse: true
+    path: k8s/mongodb
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default
@@ -20,5 +18,3 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
