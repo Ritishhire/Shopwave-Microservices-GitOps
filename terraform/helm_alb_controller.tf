@@ -4,10 +4,22 @@ resource "helm_release" "aws_load_balancer_controller" {
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
   version    = "1.7.2" # Using a stable chart version
+  wait       = true
+  timeout    = 600
 
   set {
     name  = "clusterName"
     value = aws_eks_cluster.cluster.name
+  }
+
+  set {
+    name  = "vpcId"
+    value = aws_vpc.main.id
+  }
+
+  set {
+    name  = "region"
+    value = var.aws_region
   }
 
   set {
