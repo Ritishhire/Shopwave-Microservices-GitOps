@@ -3,6 +3,13 @@ kind: Application
 metadata:
   name: shopwave
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: frontend=295435084247.dkr.ecr.ap-south-1.amazonaws.com/shopwave-frontend, backend=295435084247.dkr.ecr.ap-south-1.amazonaws.com/shopwave-backend
+    argocd-image-updater.argoproj.io/frontend.update-strategy: latest
+    argocd-image-updater.argoproj.io/backend.update-strategy: latest
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+    notifications.argoproj.io/subscribe.on-deployed.github: ""
+    notifications.argoproj.io/subscribe.on-health-degraded.github: ""
   # Cascade-delete all app resources when this Application is deleted.
   finalizers:
     - resources-finalizer.argocd.argoproj.io
