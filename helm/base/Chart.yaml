@@ -1,0 +1,4 @@
+apiVersion: v2
+name: base
+version: 1.0.0
+description: Base resources (config, secrets, ingress)
