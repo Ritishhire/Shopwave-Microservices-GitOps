@@ -6,6 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: argocd
 data:
+
   # ─── GMAIL SMTP SERVICE INTEGRATION ──────────────────────────────
   service.email: |
     host: smtp.gmail.com
@@ -15,8 +16,9 @@ data:
     password: $email-password
 
   # ─── TRIGGER CONDITIONS ─────────────────────────────────────────
+  # FIX 2: health bhi check ho rahi hai — "SYNCED & HEALTHY" badge accurate hoga
   trigger.on-sync-succeeded: |
-    - when: app.status.sync.status == 'Synced'
+    - when: app.status.sync.status == 'Synced' and app.status.health.status == 'Healthy'
       send: [app-sync-succeeded]
 
   trigger.on-sync-failed: |
@@ -63,7 +65,7 @@ data:
             </div>
             <div class="content">
               <div style="text-align: center;">
-                <span class="status-badge">SYNCED & HEALTHY</span>
+                <span class="status-badge">SYNCED &amp; HEALTHY</span>
               </div>
               <table class="details-table">
                 <tr>
@@ -133,7 +135,7 @@ data:
             </div>
             <div class="content">
               <div style="text-align: center;">
-                <span class="status-badge">FAILED & UNHEALTHY</span>
+                <span class="status-badge">FAILED &amp; UNHEALTHY</span>
               </div>
               <table class="details-table">
                 <tr>
