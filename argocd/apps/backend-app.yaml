@@ -7,7 +7,7 @@ metadata:
     # ─── ARGO CD IMAGE UPDATER CONFIGURATION ──────────────────────
     # Enable image updater tracking for backend container images
     argocd-image-updater.argoproj.io/image-list: backend=docker.io/ritishhire/ecommerce-backend
-    argocd-image-updater.argoproj.io/backend.update-strategy: latest
+    argocd-image-updater.argoproj.io/backend.update-strategy: semver
     # Write back updates by committing directly to the git repository
     argocd-image-updater.argoproj.io/write-back-method: git
     argocd-image-updater.argoproj.io/git-branch: main
