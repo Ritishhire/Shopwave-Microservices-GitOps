@@ -2,6 +2,4 @@
 
 
 
-mera project ka work flow esa hona chayiee ki devloper frontend/ backend mai kuch pusj kare ---> 
-githubaction pipeline run hojaya okay ---->fir build docker img --> scan img --> push to ecr 
-and then eks pulls images ----> pod running ok   and then  we can see website 
+#hek
