@@ -9,3 +9,12 @@ npm-debug.log*
 
 # Ignore ArgoCD secret to prevent leaking password
 argocd-notifications-secret.yaml
+
+# Terraform ignores
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+*.tfvars
+*.tfvars.json
+!**/terraform.tfvars
