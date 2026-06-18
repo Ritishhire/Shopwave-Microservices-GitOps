@@ -20,7 +20,7 @@ data:
       send: [app-sync-succeeded]
 
   trigger.on-sync-failed: |
-    - when: app.status.sync.status == 'Failed'
+    - when: app.status.operationState != nil and app.status.operationState.phase in ['Failed', 'Error']
       send: [app-sync-failed]
 
   trigger.on-health-degraded: |
