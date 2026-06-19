@@ -24,7 +24,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/Ritishhire/Shopwave-Microservices-GitOps.git'
+    repoURL: 'https://github.com/Ritishhire/Shopwave-CloudNativeApplication-GitOps.git'
     targetRevision: main
     path: k8s/backend
   destination:
